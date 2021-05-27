@@ -3,9 +3,8 @@
 K_LINE MC33290 interface
 
 ```
-VBAT - car +12V
-VCC  - STM32 bluepill VCC 3.3V
-TX   - STM32 bluepill PA9
-RX   - STM32 bluepill PA10
+VBB (1)  - car +12V
+VDD (7)  - STM32 bluepill VCC 3.3V
+TX  (5)  - STM32 bluepill PA9
+RX  (6)  - STM32 bluepill PA10
 ```
-
