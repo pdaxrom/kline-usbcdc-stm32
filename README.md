@@ -1,6 +1,6 @@
 ## Connecting
 
-K_LINE MC33209 interface
+K_LINE MC33290 interface
 
 ```
 VBAT - car +12V
