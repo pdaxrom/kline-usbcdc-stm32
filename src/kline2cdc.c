@@ -25,6 +25,7 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/cm3/systick.h>
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -247,6 +248,13 @@ static void setup_clock(void)
     rcc_periph_clock_enable(RCC_GPIOC);
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_USART1);
+    systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
+    /* SysTick interrupt every N clock pulses: set reload to N-1
+     * Period: N / (72 MHz / 8 )
+     * */
+    systick_set_reload(8999); // 1 ms
+    systick_counter_enable();
+   systick_interrupt_enable();
 }
 
 static void setup_gpio(void)
@@ -295,12 +303,39 @@ void usart1_isr(void)
     }
 }
 
+static volatile uint32_t systick_millis = 0;  // Millisecond counter.
+
+void sys_tick_handler(void) {
+    // Increment the global millisecond count.
+    systick_millis++;
+}
+
+static void delay(uint32_t milliseconds) {
+  uint32_t target = systick_millis + milliseconds;
+  while (target > systick_millis);
+}
+
 int main(void)
 {
 	int i;
 
 	setup_clock();
 	setup_gpio();
+
+	/*
+	 * K-LINE fast init
+	 */
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
+		GPIO_CNF_OUTPUT_PUSHPULL, GPIO9);
+
+	gpio_clear(GPIOA, GPIO9);
+	delay(25);
+	gpio_set(GPIOA, GPIO9);
+	delay(25);
+
+	/*
+	 * end K-LINE fast init
+	 */
 	setup_usart();
 
 	/* USB CDC init. */
